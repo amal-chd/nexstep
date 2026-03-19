@@ -18,28 +18,12 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <section style={{ background: 'var(--bg-secondary)', padding: '30px 0', borderBottom: '1px solid var(--border-color)' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-around', gap: '20px', flexWrap: 'wrap', textAlign: 'center' }}>
-          <div>
-            <div style={{ fontSize: '32px', fontWeight: '800', color: 'var(--brand-primary)' }}>500+</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '1px' }}>Nurses Placed</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '32px', fontWeight: '800', color: 'var(--brand-primary)' }}>98%</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '1px' }}>Visa Success Rate</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '32px', fontWeight: '800', color: 'var(--brand-primary)' }}>50+</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '1px' }}>Partner Hospitals</div>
-          </div>
-        </div>
-      </section>
+
 
       {/* Contact Section */}
       <section className="section">
         <div className="container grid-2" style={{ gap: '60px' }}>
-          
+
           {/* Contact Form (Now on Top/Left) */}
           <div className="mobile-card" style={{ background: 'white', padding: '40px', borderRadius: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', order: 1 }}>
             <h2 className="responsive-subtitle" style={{ marginBottom: '25px' }}>Send Us a Message</h2>

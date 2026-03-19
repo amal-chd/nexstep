@@ -241,6 +241,15 @@ a {
   transition: transform 0.3s ease-in-out;
 }
 
+body.nav-open .chatbot-container {
+  display: none !important;
+}
+
+.chatbot-container {
+  position: relative;
+  z-index: 3000000;
+}
+
 .responsive-title {
   font-size: clamp(32px, 6vw, 48px);
   line-height: 1.2;

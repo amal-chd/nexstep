@@ -46,7 +46,7 @@ export default function Chatbot() {
   };
 
   return (
-    <div style={{ position: 'relative', zIndex: 999999 }}>
+    <div className="chatbot-container">
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}

@@ -81,7 +81,7 @@ export default function Home() {
           </div>
           <div className="hero-image">
             <img src="/images/hero_family.png" alt="Begin your nursing career in Europe" style={{ borderRadius: '10px' }} />
-            <motion.div 
+            <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 1 }}
@@ -98,30 +98,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 1.5 STATS BAR */}
-      <section style={{ background: 'var(--brand-primary)', padding: '25px 0', color: 'white' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-around', gap: '30px', flexWrap: 'wrap', textAlign: 'center' }}>
-          <div style={{ flex: '1', minWidth: '200px' }}>
-            <div style={{ fontSize: '36px', fontWeight: '800', color: 'white' }}>500+</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '1px' }}>Nurses Placed</div>
-          </div>
-          <div style={{ flex: '1', minWidth: '200px' }}>
-            <div style={{ fontSize: '36px', fontWeight: '800', color: 'white' }}>98%</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '1px' }}>Visa Success Rate</div>
-          </div>
-          <div style={{ flex: '1', minWidth: '200px' }}>
-            <div style={{ fontSize: '36px', fontWeight: '800', color: 'white' }}>50+</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '1px' }}>Partner Hospitals</div>
-          </div>
-        </div>
-      </section>
+
 
       {/* 2. SERVICES SECTION */}
       <section className="services section">
         <div className="container">
           <div className="label-red" style={{ justifyContent: 'center' }}>OUR SERVICES</div>
           <h2 className="hero-title" style={{ fontSize: '36px', maxWidth: '650px', margin: '0 auto 20px' }}>Two Pathways to Your Nursing Career in Europe</h2>
-          
+
           <div className="services-grid">
             {services.map((srv, i) => (
               <Link href={i === 0 ? "/courses" : i === 1 ? "/services" : "/contact"} key={i} className="service-card" style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
@@ -157,7 +141,7 @@ export default function Home() {
               <li>German Language Training (A1–B2)</li>
               <li>Visa Processing & Document Support</li>
             </ul>
-            
+
             <p style={{ marginTop: '20px' }}>NexStep Europe specializes exclusively in nursing career pathways to Germany. We partner directly with German hospitals and Ausbildung training institutes to offer guaranteed placements. Our team handles everything — from German language coaching and credential recognition to visa filing and post-arrival support.</p>
 
             <div className="ceo-box">
@@ -176,32 +160,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. STATS BAR */}
-      <section className="stats-bar">
-        <div className="container stats-grid">
-          <div className="stat-item">
-            <div className="stat-icon"><Award size={40} /></div>
-            <div style={{ textAlign: 'left' }}>
-              <h3>500+</h3>
-              <p>Nurses Placed</p>
-            </div>
-          </div>
-          <div className="stat-item border-left">
-            <div className="stat-icon"><Stethoscope size={40} /></div>
-            <div style={{ textAlign: 'left' }}>
-              <h3>98%</h3>
-              <p>Visa Success Rate</p>
-            </div>
-          </div>
-          <div className="stat-item border-left">
-            <div className="stat-icon"><Users size={40} /></div>
-            <div style={{ textAlign: 'left' }}>
-              <h3>50+</h3>
-              <p>Partner Hospitals</p>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* 5. COUNTRIES */}
       <section className="countries section">
@@ -253,7 +212,7 @@ export default function Home() {
             <div className="faq-content">
               <div className="label-red">FREQUENTLY ASKED QUESTIONS</div>
               <h2 style={{ fontSize: '32px', marginBottom: '20px' }}>Everything You Need to Know</h2>
-              
+
               <div style={{ marginTop: '30px' }}>
                 {faqs.map((faq) => (
                   <div key={faq.id} className={`faq-item ${activeFaq === faq.id ? 'active' : ''}`}>
@@ -318,7 +277,7 @@ export default function Home() {
       <section className="section bg-secondary">
         <div className="container">
           <div className="label-red" style={{ justifyContent: 'center' }}>INSIGHTS & GUIDES</div>
-          <h2 className="hero-title" style={{ fontSize: '36px', textAlign: 'center', marginBottom: '40px' }}>Latest News & Articles<br/>From Our Blog</h2>
+          <h2 className="hero-title" style={{ fontSize: '36px', textAlign: 'center', marginBottom: '40px' }}>Latest News & Articles<br />From Our Blog</h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
             {blogs.map((b, i) => (
