@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Menu, X, ChevronDown } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Prevent scrolling and notify other components when menu is open
@@ -22,6 +24,8 @@ export default function Navbar() {
       document.body.classList.remove('nav-open');
     };
   }, [isMobileOpen]);
+
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <nav className="navbar">

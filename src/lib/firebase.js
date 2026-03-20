@@ -12,6 +12,14 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
+// Check if config is present (only in dev to catch common .env issues)
+if (process.env.NODE_ENV === 'development') {
+  const missingVars = Object.entries(firebaseConfig).filter(([_, v]) => !v).map(([k]) => k);
+  if (missingVars.length > 0) {
+    console.warn(`[Firebase] Missing configuration for: ${missingVars.join(', ')}. Did you restart your dev server after adding .env.local?`);
+  }
+}
+
 // Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);

@@ -15,7 +15,11 @@ export const AuthProvider = ({ children }) => {
             if (user) {
                 // To keep it simple for now, we'll hardcode allowed admin emails
                 // In a full production app, you might use Custom Claims or a Firestore 'admins' collection
-                const adminEmails = ['admin@nexstepeurope.de', 'amalchand@gmail.com'];
+                const adminEmails = [
+                    'admin@nexstepeurope.de', 
+                    'amalchand@gmail.com', 
+                    'nexstepeurope@gmail.com'
+                ];
                 setUser({
                     ...user,
                     isAdmin: adminEmails.includes(user.email?.toLowerCase())

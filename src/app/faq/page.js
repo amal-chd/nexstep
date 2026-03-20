@@ -1,83 +1,97 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { ChevronDown } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, HelpCircle } from 'lucide-react';
 
 export default function FAQPage() {
-  const [activeId, setActiveId] = useState(1);
-
   const faqs = [
-    { id: 1, category: 'Nursing Ausbildung', q: 'What is Nursing Ausbildung?', a: 'Nursing Ausbildung is a 3-year vocational nursing training program in Germany. It combines classroom-based theoretical education with practical, hands-on clinical experience in German hospitals. You earn a monthly stipend of EUR 1,000 to EUR 1,400 while training, and upon completion, you receive an EU-recognized nursing qualification.' },
-    { id: 2, category: 'Nursing Ausbildung', q: 'Who is eligible for Nursing Ausbildung?', a: 'Candidates who have completed 12 years of schooling (10+2 certificate), are between 18-35 years of age, and can achieve a B1/B2 German language level. No prior nursing degree is required — this is a training program, not a job placement.' },
-    { id: 3, category: 'Nursing Ausbildung', q: 'Do I need to pay tuition fees?', a: 'No! The Nursing Ausbildung is completely tuition-free. In fact, you receive a monthly stipend that increases each year: approximately EUR 1,100 in year 1, EUR 1,200 in year 2, and EUR 1,300-1,400 in year 3.' },
-    { id: 4, category: 'Nursing Ausbildung', q: 'What happens after completing the Ausbildung?', a: 'After completion, you receive a state-recognized nursing certificate valid across the entire European Union. You can then work as a registered nurse in Germany with a starting salary of EUR 2,800-3,500/month. You can also apply for permanent residency.' },
-    { id: 5, category: 'Nurse Recruitment', q: 'How does Direct Nurse Recruitment work?', a: 'For qualified nurses (GNM/BSc/MSc), we handle the full process: qualification recognition (Anerkennung), job matching with German hospitals, visa processing, and relocation support. You receive a direct employment contract with a German hospital.' },
-    { id: 6, category: 'Nurse Recruitment', q: 'What is Anerkennung?', a: 'Anerkennung is the official process of getting your Indian nursing qualification recognized by German authorities. Your education is evaluated against German standards. If there are gaps, you may need to pass a knowledge test or complete an adaptation program. NexStep Europe handles this entire process for you.' },
-    { id: 7, category: 'Nurse Recruitment', q: 'What salary can I expect as a recruited nurse?', a: 'Recruited nurses in Germany earn EUR 2,800-3,500/month before full recognition. After Anerkennung is complete, salaries rise to EUR 3,500-4,200/month. Additional pay is provided for night shifts, weekends, and holidays. You also receive annual bonuses at many hospitals.' },
-    { id: 8, category: 'Language', q: 'What German language level do I need?', a: 'For Nursing Ausbildung, you typically need B1 level. For Direct Recruitment, B2 level is usually required for professional licensing. NexStep Europe provides structured German language training from A1 through B2 to help you meet these requirements.' },
-    { id: 9, category: 'Language', q: 'How long does it take to reach B2 level?', a: 'With dedicated, full-time study, most candidates reach B1 in 6-8 months and B2 in 10-14 months. NexStep Europe offers intensive coaching programs with certified German language teachers to ensure you progress efficiently.' },
-    { id: 10, category: 'Visa & Documents', q: 'What documents do I need?', a: 'You will need: academic certificates (10th, 12th, nursing degree), German language certificate, CV in German format, motivation letter, valid passport, medical fitness certificate, police clearance certificate, and translated copies of all documents. We assist with preparing and translating everything.' },
-    { id: 11, category: 'Family', q: 'Can I bring my family to Germany?', a: 'Yes! Germany offers family reunion visas. Your spouse can also work in Germany. Children receive free education and monthly child benefits of EUR 250 per child. Germany also provides paid maternity/paternity leave. NexStep Europe assists with the complete family relocation process.' },
-    { id: 12, category: 'Family', q: 'What about healthcare and social security?', a: 'As a nurse in Germany, you receive comprehensive social security coverage including statutory health insurance, pension contributions, unemployment protection, and long-term care coverage. These benefits extend to your family members as well.' }
+    {
+      q: "What is Nursing Ausbildung in Germany?",
+      a: "Nursing Ausbildung is a 3-year vocational training program where you combine classroom study with paid hospital work. It is tuition-free, and you receive a monthly stipend (approx. EUR 1,100–1,400). Upon completion, you get a state-recognized nursing certificate valid across the EU."
+    },
+    {
+      q: "Do I need to know German to apply?",
+      a: "Yes, German language proficiency is mandatory. Most Ausbildung programs require B1 level and hospitals require B2 for direct recruitment. We provide structured coaching from zero to B2 level."
+    },
+    {
+      q: "What is the age limit for Nursing Ausbildung?",
+      a: "While there is no strict legal age limit, most training institutes prefer candidates between 18 and 35 years old. Candidates above 35 may still be eligible for direct recruitment if they have experience."
+    },
+    {
+      q: "Can I bring my family to Germany as a nurse?",
+      a: "Yes! Qualified nurses in Germany can apply for family reunification. Spouses are generally granted work permits, and children are eligible for free education and child benefits (Kindergeld)."
+    },
+    {
+      q: "How long does the entire process take?",
+      a: "On average, it takes 10–14 months. This includes learning German (A1 to B2), document verification (Anerkennung), interview rounds, and visa processing."
+    },
+    {
+      q: "How much is the initial investment?",
+      a: "The training in Germany (Ausbildung) is tuition-free. Your costs in India include German language coaching, document translation, blocked account (if required) or processing fees. Contact us for a detailed fee structure."
+    }
   ];
-
-  const categories = [...new Set(faqs.map(f => f.category))];
 
   return (
     <main>
-      {/* Hero */}
       <section style={{ background: 'var(--brand-primary)', padding: '80px 0 60px', color: 'white', textAlign: 'center' }}>
         <div className="container">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <div className="label-red" style={{ justifyContent: 'center', color: 'var(--brand-secondary)' }}>FAQ</div>
+            <div className="label-red" style={{ justifyContent: 'center', color: 'var(--brand-secondary)' }}>HELP CENTER</div>
             <h1 style={{ fontSize: '48px', color: 'white', marginBottom: '15px' }}>Frequently Asked Questions</h1>
-            <p style={{ fontSize: '18px', opacity: 0.85, maxWidth: '600px', margin: '0 auto' }}>Everything you need to know about nursing careers in Germany.</p>
+            <p style={{ fontSize: '18px', opacity: 0.85, maxWidth: '600px', margin: '0 auto' }}>Everything you need to know about nursing careers and Ausbildung in Germany.</p>
           </motion.div>
         </div>
       </section>
 
-      {/* FAQ Content */}
       <section className="section">
         <div className="container" style={{ maxWidth: '800px' }}>
-          {categories.map((cat, ci) => (
-            <div key={ci} style={{ marginBottom: '50px' }}>
-              <h2 style={{ fontSize: '24px', marginBottom: '20px', color: 'var(--brand-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ width: '4px', height: '28px', background: 'var(--brand-secondary)', borderRadius: '2px', display: 'inline-block' }}></span>
-                {cat}
-              </h2>
-              {faqs.filter(f => f.category === cat).map((faq) => (
-                <div key={faq.id} className={`faq-item ${activeId === faq.id ? 'active' : ''}`} style={{ border: '1px solid var(--border-color)', borderRadius: '6px', marginBottom: '10px', overflow: 'hidden' }}>
-                  <div
-                    className={`faq-question ${activeId === faq.id ? 'active' : ''}`}
-                    onClick={() => setActiveId(faq.id === activeId ? null : faq.id)}
-                    style={{ padding: '18px 20px', background: activeId === faq.id ? 'rgba(0,177,176,0.05)' : 'white' }}
-                  >
-                    <span>{faq.q}</span>
-                    <ChevronDown size={18} style={{ transform: activeId === faq.id ? 'rotate(180deg)' : 'none', transition: '0.3s', flexShrink: 0 }} />
-                  </div>
-                  <div className="faq-answer" style={{ padding: activeId === faq.id ? '0 20px 18px' : '0 20px' }}>
-                    <p style={{ color: 'var(--text-gray)', lineHeight: '1.8' }}>{faq.a}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ background: 'var(--bg-secondary)', padding: '60px 0', textAlign: 'center' }}>
-        <div className="container">
-          <h2 style={{ fontSize: '32px', marginBottom: '15px' }}>Still Have Questions?</h2>
-          <p style={{ color: 'var(--text-gray)', marginBottom: '30px' }}>Book a free consultation call and our team will answer all your questions personally.</p>
-          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/contact" className="btn-primary">BOOK FREE CONSULTATION ↗</Link>
-            <a href="tel:+919847300744" className="btn-primary" style={{ background: 'var(--brand-secondary)' }}>CALL +91 9847 300 744</a>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {faqs.map((faq, i) => (
+              <FAQItem key={i} faq={faq} index={i} />
+            ))}
           </div>
         </div>
       </section>
+
+      <section style={{ background: 'var(--bg-secondary)', padding: '60px 0', textAlign: 'center' }}>
+        <div className="container">
+          <HelpCircle size={48} color="var(--brand-primary)" style={{ marginBottom: '20px' }} />
+          <h2 style={{ fontSize: '30px', marginBottom: '15px' }}>Still Have Questions?</h2>
+          <p style={{ color: 'var(--text-gray)', marginBottom: '30px' }}>Our consultants are ready to answer all your specific queries.</p>
+          <a href="/contact" className="btn-primary">GET A FREE CONSULTATION ↗</a>
+        </div>
+      </section>
     </main>
+  );
+}
+
+function FAQItem({ faq, index }) {
+  const [isOpen, setIsOpen] = useState(index === 0);
+
+  return (
+    <div style={{ background: 'white', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        style={{ width: '100%', padding: '20px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+      >
+        <span style={{ fontSize: '18px', fontWeight: '700', color: 'var(--brand-primary)', paddingRight: '20px' }}>{faq.q}</span>
+        <ChevronDown size={20} style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.3s', flexShrink: 0 }} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div style={{ padding: '0 25px 25px', color: 'var(--text-gray)', lineHeight: '1.7', fontSize: '16px' }}>
+              {faq.a}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

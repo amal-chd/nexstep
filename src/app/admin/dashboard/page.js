@@ -2,42 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import { db, auth } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { LogOut, Trash2, CheckCircle, Mail, Phone, Calendar, User, Search, Filter } from 'lucide-react';
-import { signOut } from 'firebase/auth';
-import { addDoc, serverTimestamp } from 'firebase/firestore';
+import { TrendingUp, Users, MessageSquare, Newspaper, Loader2, Calendar, Phone, Mail, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState('inquiries');
   const [inquiries, setInquiries] = useState([]);
   const [blogs, setBlogs] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  
-  // Blog form state
-  const [blogForm, setBlogForm] = useState({ title: '', image: '', excerpt: '' });
-  const [blogLoading, setBlogLoading] = useState(false);
-
-  const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.push('/admin/login');
-      } else if (!user.isAdmin) {
-        router.push('/');
-      }
-    }
-  }, [user, loading, router]);
+    if (!user || !user.isAdmin) return;
 
-  useEffect(() => {
-    if (!user) return;
-
-    // Fetch Inquiries
-    const qInquiries = query(collection(db, 'inquiries'), orderBy('createdAt', 'desc'));
+    // Fetch Inquiries (last 100 for stats)
+    const qInquiries = query(collection(db, 'inquiries'), orderBy('createdAt', 'desc'), limit(100));
     const unsubInquiries = onSnapshot(qInquiries, (snapshot) => {
       setInquiries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
@@ -54,202 +33,139 @@ export default function AdminDashboard() {
     };
   }, [user]);
 
-  const handleStatusUpdate = async (id, newStatus) => {
-    try {
-      await updateDoc(doc(db, 'inquiries', id), { status: newStatus });
-    } catch (err) {
-      console.error("Error updating status:", err);
-    }
+  const stats = {
+    totalInquiries: inquiries.length,
+    newInquiries: inquiries.filter(i => i.status === 'new').length,
+    totalBlogs: blogs.length,
+    chatbotLeads: inquiries.filter(i => i.source === 'chatbot').length
   };
 
-  const handleDeleteInquiry = async (id) => {
-    if (!confirm("Delete this inquiry?")) return;
-    try {
-      await deleteDoc(doc(db, 'inquiries', id));
-    } catch (err) {
-      console.error("Error deleting inquiry:", err);
-    }
-  };
-
-  const handleCreateBlog = async (e) => {
-    e.preventDefault();
-    if (!blogForm.title) return;
-    setBlogLoading(true);
-    try {
-      await addDoc(collection(db, 'blogs'), {
-        ...blogForm,
-        img: blogForm.image || '/images/blog_1.png', // Fallback
-        createdAt: serverTimestamp()
-      });
-      setBlogForm({ title: '', image: '', excerpt: '' });
-      alert("Blog created successfully!");
-    } catch (err) {
-      console.error("Error creating blog:", err);
-      alert("Failed to create blog.");
-    } finally {
-      setBlogLoading(false);
-    }
-  };
-
-  const handleDeleteBlog = async (id) => {
-    if (!confirm("Delete this blog post?")) return;
-    try {
-      await deleteDoc(doc(db, 'blogs', id));
-    } catch (err) {
-      console.error("Error deleting blog:", err);
-    }
-  };
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.push('/admin/login');
-  };
-
-  const filteredInquiries = inquiries.filter(item => {
-    const matchesSearch = 
-      item.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      item.phone?.includes(searchTerm) || 
-      item.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
-
-  if (loading || !user) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading Admin Console...</div>;
+  if (loading || !user || !user.isAdmin) {
+    return (
+      <div style={{ height: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+        <Loader2 size={40} className="animate-spin" color="var(--brand-primary)" />
+        <p style={{ color: 'var(--text-gray)', fontWeight: '500' }}>Verifying Access...</p>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ background: '#f4f7f9', minHeight: '100vh', padding: '40px 20px' }}>
-      <div className="container" style={{ maxWidth: '1200px' }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-          <div>
-            <h1 style={{ color: 'var(--brand-primary)', fontSize: '32px' }}>NexStep Console</h1>
-            <p style={{ color: 'var(--text-gray)' }}>Admin Dashboard</p>
+    <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+      {/* Welcome Banner */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, var(--brand-primary) 0%, #1a3070 100%)', 
+        padding: '40px', 
+        borderRadius: '24px', 
+        color: 'white', 
+        marginBottom: '40px',
+        boxShadow: '0 20px 40px rgba(18, 33, 90, 0.15)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '10px' }}>Welcome back, Admin 👋</h2>
+          <p style={{ fontSize: '16px', opacity: 0.9, maxWidth: '600px' }}>
+            Your study abroad platform is performing well today. You have <strong>{stats.newInquiries} new leads</strong> waiting for your attention.
+          </p>
+          <div style={{ display: 'flex', gap: '15px', marginTop: '25px' }}>
+            <Link href="/admin/inquiries" style={{ background: 'var(--brand-secondary)', color: 'white', padding: '12px 24px', borderRadius: '10px', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              View All Inquiries <ArrowRight size={18} />
+            </Link>
+            <Link href="/admin/blogs" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', padding: '12px 24px', borderRadius: '10px', fontWeight: '700', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)' }}>
+              Post Blog Post
+            </Link>
           </div>
-          <button onClick={handleLogout} className="btn-primary" style={{ background: '#ef4444', height: '45px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <LogOut size={18} /> LOGOUT
-          </button>
-        </header>
+        </div>
+        <div style={{ position: 'absolute', right: '-50px', top: '-50px', width: '300px', height: '300px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }}></div>
+      </div>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', borderBottom: '1px solid #e2e8f0', paddingBottom: '1px' }}>
-          <button 
-            onClick={() => setActiveTab('inquiries')}
-            style={{ padding: '12px 25px', borderRadius: '8px 8px 0 0', border: 'none', background: activeTab === 'inquiries' ? 'white' : 'transparent', color: activeTab === 'inquiries' ? 'var(--brand-primary)' : 'var(--text-gray)', fontWeight: '700', cursor: 'pointer', borderBottom: activeTab === 'inquiries' ? '3px solid var(--brand-secondary)' : 'none' }}
-          >
-            INQUIRIES ({inquiries.length})
-          </button>
-          <button 
-            onClick={() => setActiveTab('blogs')}
-            style={{ padding: '12px 25px', borderRadius: '8px 8px 0 0', border: 'none', background: activeTab === 'blogs' ? 'white' : 'transparent', color: activeTab === 'blogs' ? 'var(--brand-primary)' : 'var(--text-gray)', fontWeight: '700', cursor: 'pointer', borderBottom: activeTab === 'blogs' ? '3px solid var(--brand-secondary)' : 'none' }}
-          >
-            BLOG POSTS ({blogs.length})
-          </button>
+      {/* Stats Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '25px', marginBottom: '40px' }}>
+        {[
+          { label: 'Total Inquiries', value: stats.totalInquiries, icon: <Users />, color: '#4361ee' },
+          { label: 'New Leads', value: stats.newInquiries, icon: <TrendingUp />, color: '#10b981' },
+          { label: 'Chatbot Leads', value: stats.chatbotLeads, icon: <MessageSquare />, color: '#0ea5e9' },
+          { label: 'Published Blogs', value: stats.totalBlogs, icon: <Newspaper />, color: '#f59e0b' }
+        ].map((item, idx) => (
+          <div key={idx} style={{ background: 'white', padding: '25px', borderRadius: '20px', border: '1px solid #f1f5f9', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+              <div style={{ padding: '12px', borderRadius: '12px', backgroundColor: `${item.color}15`, color: item.color }}>{item.icon}</div>
+            </div>
+            <h3 style={{ fontSize: '28px', fontWeight: '800', color: 'var(--brand-primary)', marginBottom: '5px' }}>{item.value}</h3>
+            <p style={{ color: 'var(--text-gray)', fontSize: '14px', fontWeight: '500' }}>{item.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '30px' }}>
+        {/* Recent Inquiries List */}
+        <div style={{ background: 'white', padding: '30px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--brand-primary)' }}>Quick Inbox</h3>
+            <Link href="/admin/inquiries" style={{ color: 'var(--brand-secondary)', fontWeight: '600', fontSize: '14px' }}>View All</Link>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {inquiries.slice(0, 5).map((item) => (
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', borderRadius: '15px', background: '#f8fafc', border: '1px solid transparent', transition: 'all 0.2s' }}>
+                <div style={{ width: '45px', height: '45px', borderRadius: '12px', backgroundColor: 'var(--brand-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '18px' }}>
+                  {item.fullName?.[0]}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--brand-primary)' }}>{item.fullName}</h4>
+                    {item.source === 'chatbot' && <span style={{ fontSize: '9px', fontWeight: '900', background: '#def7ec', color: '#03543f', padding: '2px 6px', borderRadius: '4px' }}>CHATBOT</span>}
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-gray)', marginTop: '2px' }}>{item.service?.replace('_', ' ')} • {item.createdAt?.toDate ? new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short' }).format(item.createdAt.toDate()) : 'Recently'}</p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                   <span style={{ 
+                     fontSize: '10px', 
+                     fontWeight: '700', 
+                     padding: '4px 8px', 
+                     borderRadius: '6px', 
+                     background: item.status === 'new' ? '#fff1f2' : item.status === 'contacted' ? '#f0f9ff' : '#f8fafc',
+                     color: item.status === 'new' ? '#e11d48' : item.status === 'contacted' ? '#0ea5e9' : '#64748b',
+                     textTransform: 'uppercase'
+                   }}>{item.status}</span>
+                </div>
+              </div>
+            ))}
+            {inquiries.length === 0 && <p style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>No inquiries yet.</p>}
+          </div>
         </div>
 
-        {activeTab === 'inquiries' ? (
-          <>
-            {/* Inquiry Filters */}
-            <div style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '30px' }}>
-              <div style={{ flex: 1, minWidth: '300px', display: 'flex', alignItems: 'center', gap: '10px', background: '#f8f9fa', padding: '0 15px', borderRadius: '8px' }}>
-                <Search size={18} color="#94a3b8" />
-                <input 
-                  type="text" 
-                  placeholder="Search inquiries..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ flex: 1, background: 'none', border: 'none', padding: '12px 0', outline: 'none' }}
-                />
+        {/* Lead Analytics Card */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+          <div style={{ background: 'white', padding: '30px', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--brand-primary)', marginBottom: '25px' }}>Source Breakdown</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '14px' }}>
+                  <span style={{ fontWeight: '600' }}>AI Chatbot</span>
+                  <span style={{ color: 'var(--brand-secondary)', fontWeight: '700' }}>{Math.round((stats.chatbotLeads / (stats.totalInquiries || 1)) * 100)}%</span>
+                </div>
+                <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ width: `${(stats.chatbotLeads / (stats.totalInquiries || 1)) * 100}%`, height: '100%', background: 'linear-gradient(90deg, #00B1B0 0%, #00d2d3 100%)' }}></div>
+                </div>
               </div>
-              <select 
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                style={{ padding: '10px 15px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}
-              >
-                <option value="all">All Status</option>
-                <option value="new">New</option>
-                <option value="contacted">Contacted</option>
-                <option value="closed">Closed</option>
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {filteredInquiries.map((item) => (
-                <div key={item.id} style={{ background: 'white', padding: '25px', borderRadius: '12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', border: item.status === 'new' ? '1px solid #e0f2fe' : 'none', position: 'relative' }}>
-                  <div>
-                    <strong style={{ fontSize: '18px', display: 'block' }}>{item.fullName}</strong>
-                    <span style={{ fontSize: '13px', color: 'var(--text-gray)' }}>{item.createdAt?.toDate ? new Intl.DateTimeFormat('en-GB').format(item.createdAt.toDate()) : 'Recently'}</span>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '14px' }}>{item.phone}</div>
-                    <div style={{ fontSize: '14px', color: 'var(--text-gray)' }}>{item.email}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '13px' }}><strong>Srv:</strong> {item.service}</div>
-                    <div style={{ fontSize: '13px' }}><strong>Lvl:</strong> {item.languageLevel}</div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'flex-end' }}>
-                    <select 
-                      value={item.status || 'new'} 
-                      onChange={(e) => handleStatusUpdate(item.id, e.target.value)}
-                      style={{ padding: '5px 10px', borderRadius: '4px', fontSize: '12px' }}
-                    >
-                      <option value="new">New</option>
-                      <option value="contacted">Contacted</option>
-                      <option value="closed">Closed</option>
-                    </select>
-                    <button onClick={() => handleDeleteInquiry(item.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={18} /></button>
-                  </div>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '14px' }}>
+                  <span style={{ fontWeight: '600' }}>Web Forms</span>
+                  <span style={{ color: 'var(--brand-primary)', fontWeight: '700' }}>{Math.round(((stats.totalInquiries - stats.chatbotLeads) / (stats.totalInquiries || 1)) * 100)}%</span>
                 </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '30px' }}>
-            {/* Create Blog Form */}
-            <div style={{ background: 'white', padding: '30px', borderRadius: '12px', height: 'fit-content' }}>
-              <h3 style={{ marginBottom: '20px' }}>Create New Blog</h3>
-              <form onSubmit={handleCreateBlog} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <input 
-                  placeholder="Blog Title" 
-                  value={blogForm.title} 
-                  onChange={e => setBlogForm({...blogForm, title: e.target.value})} 
-                  style={{ padding: '12px', borderRadius: '6px', border: '1px solid #ddd' }}
-                  required
-                />
-                <input 
-                  placeholder="Image URL (optional)" 
-                  value={blogForm.image} 
-                  onChange={e => setBlogForm({...blogForm, image: e.target.value})} 
-                  style={{ padding: '12px', borderRadius: '6px', border: '1px solid #ddd' }}
-                />
-                <textarea 
-                  placeholder="Excerpt/Content" 
-                  rows={4}
-                  value={blogForm.excerpt} 
-                  onChange={e => setBlogForm({...blogForm, excerpt: e.target.value})} 
-                  style={{ padding: '12px', borderRadius: '6px', border: '1px solid #ddd' }}
-                />
-                <button type="submit" disabled={blogLoading} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                  {blogLoading ? 'CREATING...' : 'PUBLISH BLOG'}
-                </button>
-              </form>
-            </div>
-
-            {/* Blog List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {blogs.map(blog => (
-                <div key={blog.id} style={{ background: 'white', padding: '20px', borderRadius: '12px', display: 'flex', gap: '20px', alignItems: 'center' }}>
-                  <img src={blog.img} style={{ width: '80px', height: '60px', borderRadius: '6px', objectFit: 'cover' }} />
-                  <div style={{ flex: 1 }}>
-                    <h4 style={{ fontSize: '16px' }}>{blog.title}</h4>
-                    <span style={{ fontSize: '12px', color: 'var(--text-gray)' }}>{blog.createdAt?.toDate ? new Intl.DateTimeFormat('en-GB').format(blog.createdAt.toDate()) : 'Recently'}</span>
-                  </div>
-                  <button onClick={() => handleDeleteBlog(blog.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ width: `${((stats.totalInquiries - stats.chatbotLeads) / (stats.totalInquiries || 1)) * 100}%`, height: '100%', background: 'var(--brand-primary)' }}></div>
                 </div>
-              ))}
-              {blogs.length === 0 && <p style={{ textAlign: 'center', padding: '40px', color: 'var(--text-gray)' }}>No blog posts yet.</p>}
+              </div>
+            </div>
+            <div style={{ marginTop: '30px', padding: '20px', borderRadius: '15px', background: '#f0f9ff', border: '1px solid #e0f2fe' }}>
+              <p style={{ fontSize: '13px', color: '#0369a1', lineHeight: '1.5' }}>
+                <TrendingUp size={14} style={{ marginRight: '5px' }} /> 
+                <strong>Insight:</strong> {stats.chatbotLeads > inquiries.length / 2 ? 'The Chatbot is currently your primary lead source.' : 'Web forms are generating most of your leads.'}
+              </p>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

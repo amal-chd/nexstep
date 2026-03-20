@@ -1,48 +1,86 @@
 "use client";
-
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function Chatbot() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+
   const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState({ name: '', phone: '', service: '', qualification: '', german_level: '' });
+  const [formData, setFormData] = useState({ name: '', phone: '', service: '', qualification: '', languageLevel: '' });
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Hi there! 👋 Welcome to NexStep Europe. I will help you explore your nursing career in Germany. What is your name?' }
+    { sender: 'bot', text: 'Hi there! 👋 Welcome to NexStep Europe. I will help you explore your nursing career in Germany.\n\n**What is your full name?**' }
   ]);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
+  if (pathname?.startsWith('/admin')) return null;
 
   const stepsFlow = [
-    { field: 'name', nextQ: 'Nice to meet you! What is your phone or WhatsApp number so our team can reach you?' },
-    { field: 'phone', nextQ: 'Which service are you interested in?\n\n1️⃣ Nursing Ausbildung (3-year training)\n2️⃣ Direct Nurse Recruitment\n\nJust type 1 or 2!' },
-    { field: 'service', nextQ: 'What is your current qualification? (e.g., 10+2, GNM, BSc Nursing, MSc Nursing)' },
-    { field: 'qualification', nextQ: 'What is your current German language level? (e.g., None, A1, A2, B1, B2)' },
-    { field: 'german_level', nextQ: 'Thank you! 🎉 Our team will review your profile and contact you within 24 hours with a personalized pathway. Meanwhile, feel free to call us at +91 9847 300 744.' }
+    { field: 'name', nextQ: 'Nice to meet you! **What is your WhatsApp or phone number** so our team can reach you?' },
+    { field: 'phone', nextQ: 'Which service are you interested in?' },
+    { field: 'service', nextQ: 'What is your current qualification? (e.g., 10+2, GNM, BSc Nursing, MSc Nursing)', options: ['Nursing Ausbildung', 'Direct Nurse Recruitment'] },
+    { field: 'qualification', nextQ: 'What is your current German language level?', options: ['GNM', 'BSc Nursing', 'Post Basic', 'Other'] },
+    { field: 'languageLevel', nextQ: 'Thank you! 🎉 Our team will review your profile and contact you within 24 hours with a personalized pathway. Meanwhile, feel free to call us at +91 9847 300 744.', options: ['None (Beginner)', 'A1', 'A2', 'B1', 'B2+'] }
   ];
 
-  const handleSend = (e) => {
-    e.preventDefault();
-    const input = e.target.elements.message.value;
-    if (!input.trim()) return;
+  const handleSend = async (e, manualValue = null) => {
+    if (e) e.preventDefault();
+    const input = manualValue || (e ? e.target.elements.message.value : '');
+    if (!input.trim() || isTyping) return;
 
-    const newMessages = [...messages, { sender: 'user', text: input }];
-    setMessages(newMessages);
+    // Add user message
+    const userMsg = { sender: 'user', text: input };
+    setMessages(prev => [...prev, userMsg]);
+    if (e) e.target.reset();
 
     if (step < stepsFlow.length) {
       const currentStepObj = stepsFlow[step];
       const newFormData = { ...formData, [currentStepObj.field]: input };
       setFormData(newFormData);
       
-      setTimeout(() => {
-        setMessages([...newMessages, { sender: 'bot', text: currentStepObj.nextQ }]);
-        setStep(step + 1);
+      setIsTyping(true);
+      
+      // Artificial delay for realism
+      setTimeout(async () => {
+        setIsTyping(false);
+        const botMsg = { sender: 'bot', text: currentStepObj.nextQ };
+        setMessages(prev => [...prev, botMsg]);
+        setStep(prev => prev + 1);
         
         if (step === stepsFlow.length - 1) {
-          console.log('NexStep Europe Lead:', newFormData);
+          // Final step reached, save to Firestore
+          try {
+            await addDoc(collection(db, 'inquiries'), {
+              fullName: newFormData.name,
+              phone: newFormData.phone,
+              email: 'Lead from Chatbot',
+              service: newFormData.service.includes('Ausbildung') ? 'Nursing_Ausbildung' : 'Nurse_Recruitment',
+              qualification: newFormData.qualification,
+              languageLevel: newFormData.languageLevel,
+              status: 'new',
+              source: 'chatbot',
+              createdAt: serverTimestamp()
+            });
+            console.log('Lead saved to admin panel!');
+          } catch (error) {
+            console.error('Error saving lead:', error);
+          }
         }
-      }, 800);
+      }, 1200);
     }
-    
-    e.target.reset();
   };
 
   return (
@@ -141,11 +179,51 @@ export default function Chatbot() {
               fontSize: '0.9rem',
               lineHeight: '1.5',
               boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              whiteSpace: 'pre-line'
+              whiteSpace: 'pre-line',
+              position: 'relative'
             }}>
-              {msg.text}
+              {msg.text.split('**').map((part, i) => i % 2 === 1 ? <strong key={i} style={{ color: 'var(--brand-secondary)', fontWeight: '800' }}>{part}</strong> : part)}
+              {msg.sender === 'bot' && idx === messages.length - 1 && stepsFlow[step-1]?.options && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+                  {stepsFlow[step-1].options.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => handleSend(null, opt)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        border: '1px solid var(--brand-secondary)',
+                        background: 'white',
+                        color: 'var(--brand-secondary)',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          background: 'var(--brand-secondary)',
+                          color: 'white'
+                        }
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
+          {isTyping && (
+            <div style={{ alignSelf: 'flex-start', background: 'white', padding: '10px 15px', borderRadius: '15px', display: 'flex', gap: '4px' }}>
+              <div className="typing-dot" style={{ width: '6px', height: '6px', background: '#94a3b8', borderRadius: '50%', animation: 'bounce 1s infinite' }}></div>
+              <div className="typing-dot" style={{ width: '6px', height: '6px', background: '#94a3b8', borderRadius: '50%', animation: 'bounce 1s infinite 0.2s' }}></div>
+              <div className="typing-dot" style={{ width: '6px', height: '6px', background: '#94a3b8', borderRadius: '50%', animation: 'bounce 1s infinite 0.4s' }}></div>
+              <style>{`
+                @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+              `}</style>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input Area */}
