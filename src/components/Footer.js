@@ -112,10 +112,13 @@ export default function Footer() {
           paddingTop: '20px',
           borderTop: '1px solid rgba(255,255,255,0.1)',
           display: 'flex',
-          justifyContent: 'center',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '10px',
           fontSize: '12px'
         }}>
           <p>© Copyright 2025 NexStep Europe. All rights reserved. — Step Into Your Future</p>
+          <Link href="/admin/login" style={{ opacity: 0.3, color: 'white', textDecoration: 'none' }}>Admin Login</Link>
         </div>
       </div>
     </footer>

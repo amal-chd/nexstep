@@ -1,12 +1,66 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { Stethoscope, BookOpen, GraduationCap, Building, ChevronDown, CheckCircle, ArrowRight, Play, Phone, Mail, MapPin, Heart, Users, Award, Globe } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Stethoscope, BookOpen, GraduationCap, Building, ChevronDown, CheckCircle, ArrowRight, Play, Phone, Mail, MapPin, Heart, Users, Award, Globe, Loader2, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { db } from '@/lib/firebase';
+import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function Home() {
   const [activeFaq, setActiveFaq] = useState(1);
+  const [blogs, setBlogs] = useState([
+    { id: '1', date: 'MAR 10, 2025', title: 'Why Germany Needs 36,000+ Nurses Every Year', img: '/images/blog_1.png' },
+    { id: '2', date: 'MAR 15, 2025', title: 'Nursing Ausbildung vs. Direct Recruitment — Which Path Is Right?', img: '/images/blog_2.png' },
+    { id: '3', date: 'MAR 20, 2025', title: 'Life as an Indian Nurse in Germany: Salary, Benefits & Culture', img: '/images/blog_3.png' }
+  ]);
+
+  const [contactForm, setContactForm] = useState({ fullName: '', phone: '', email: '', message: '' });
+  const [contactStatus, setContactStatus] = useState({ loading: false, success: false, error: null });
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const q = query(collection(db, 'blogs'), orderBy('createdAt', 'desc'), limit(3));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const fetchedBlogs = snapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data(),
+            date: doc.data().createdAt?.toDate() ? new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(doc.data().createdAt.toDate()).toUpperCase() : doc.data().date
+          }));
+          setBlogs(fetchedBlogs);
+        }
+      } catch (err) {
+        console.error("Error fetching blogs:", err);
+      }
+    };
+    fetchBlogs();
+  }, []);
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    if (!contactForm.fullName || !contactForm.phone) {
+      setContactStatus({ ...contactStatus, error: 'Full name and phone are required.' });
+      return;
+    }
+    setContactStatus({ loading: true, success: false, error: null });
+    try {
+      await addDoc(collection(db, 'inquiries'), {
+        ...contactForm,
+        service: 'general_consultation',
+        qualification: 'not_specified',
+        languageLevel: 'not_specified',
+        createdAt: serverTimestamp(),
+        status: 'new'
+      });
+      setContactStatus({ loading: false, success: true, error: null });
+      setContactForm({ fullName: '', phone: '', email: '', message: '' });
+    } catch (err) {
+      console.error("Contact Error:", err);
+      setContactStatus({ loading: false, success: false, error: 'Failed to submit. Please try again.' });
+    }
+  };
 
   const services = [
     {
@@ -59,12 +113,6 @@ export default function Home() {
     { id: 5, q: 'Can I bring my family to Germany?', a: 'Yes. Germany offers family reunion visas. Your spouse can also work in Germany, and children receive free education and monthly child benefits (€250/child). We assist with the full family relocation process.' }
   ];
 
-  const blogs = [
-    { date: 'MAR 10, 2025', title: 'Why Germany Needs 36,000+ Nurses Every Year', img: '/images/blog_1.png' },
-    { date: 'MAR 15, 2025', title: 'Nursing Ausbildung vs. Direct Recruitment — Which Path Is Right?', img: '/images/blog_2.png' },
-    { date: 'MAR 20, 2025', title: 'Life as an Indian Nurse in Germany: Salary, Benefits & Culture', img: '/images/blog_3.png' }
-  ];
-
   return (
     <main>
       {/* 1. HERO SECTION */}
@@ -97,8 +145,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-
 
       {/* 2. SERVICES SECTION */}
       <section className="services section">
@@ -160,8 +206,6 @@ export default function Home() {
         </div>
       </section>
 
-
-
       {/* 5. COUNTRIES */}
       <section className="countries section">
         <div className="container">
@@ -172,12 +216,9 @@ export default function Home() {
             {countries.map((c, i) => (
               <div key={i} className="country-card" style={{ opacity: c.name === 'Germany' ? 1 : 0.7, position: 'relative' }}>
                 <div className="country-number">{c.num}</div>
-                {c.name !== 'Germany' && (
-                  <div style={{ position: 'absolute', top: '20px', right: '20px', background: '#ff4d4d', color: 'white', padding: '4px 12px', fontSize: '11px', fontWeight: '700', borderRadius: '4px', zIndex: 10 }}>NOT ACCEPTING</div>
-                )}
-                {c.name === 'Germany' && (
-                  <div style={{ position: 'absolute', top: '20px', right: '20px', background: 'var(--brand-secondary)', color: 'white', padding: '4px 12px', fontSize: '11px', fontWeight: '700', borderRadius: '4px', zIndex: 10 }}>ACTIVE</div>
-                )}
+                <div style={{ position: 'absolute', top: '20px', right: '20px', background: c.name === 'Germany' ? 'var(--brand-secondary)' : '#ff4d4d', color: 'white', padding: '4px 12px', fontSize: '11px', fontWeight: '700', borderRadius: '4px', zIndex: 10 }}>
+                  {c.name === 'Germany' ? 'ACTIVE' : 'NOT ACCEPTING'}
+                </div>
                 <img src={c.img} alt={c.name} className="country-img" style={{ filter: c.name === 'Germany' ? 'none' : 'grayscale(100%)' }} />
                 <h3 className="country-title">{c.name}</h3>
                 <p className="country-desc">{c.text}</p>
@@ -194,7 +235,6 @@ export default function Home() {
       <section className="faq-section bg-secondary">
         <div className="container">
           <div className="faq-container">
-            {/* Left Image Side */}
             <div className="faq-image-side">
               <img src="/images/faq_travelers.png" alt="Nurses preparing for Germany" />
               <div className="faq-badge">
@@ -208,7 +248,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right Accordion Side */}
             <div className="faq-content">
               <div className="label-red">FREQUENTLY ASKED QUESTIONS</div>
               <h2 style={{ fontSize: '32px', marginBottom: '20px' }}>Everything You Need to Know</h2>
@@ -238,37 +277,52 @@ export default function Home() {
             <img src="/images/contact_agent.png" alt="NexStep Europe support team" style={{ width: '100%', borderRadius: '4px' }} />
           </div>
           <div style={{ flex: 1, minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <div className="label-red">GET IN TOUCH</div>
-              <h2 style={{ fontSize: '28px', marginBottom: '10px' }}>Start Your Nursing Career Today</h2>
-              <p style={{ color: 'var(--text-gray)', fontSize: '15px', marginBottom: '20px' }}>Book a free consultation with our team. We'll assess your eligibility and guide you through the best pathway — Nursing Ausbildung or Direct Recruitment.</p>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <AnimatePresence mode="wait">
+              {contactStatus.success ? (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  key="success"
+                  style={{ background: '#ecfdf5', padding: '30px', borderRadius: '12px', textAlign: 'center' }}
+                >
+                  <CheckCircle2 color="#10b981" size={48} style={{ margin: '0 auto 15px' }} />
+                  <h3 style={{ color: 'var(--brand-primary)', marginBottom: '10px' }}>Consultation Requested!</h3>
+                  <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>We have received your details and will call you back shortly.</p>
+                  <button onClick={() => setContactStatus({ ...contactStatus, success: false })} style={{ marginTop: '20px', color: 'var(--brand-secondary)', fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer' }}>REQUEST ANOTHER</button>
+                </motion.div>
+              ) : (
+                <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <div>
+                    <div className="label-red">GET IN TOUCH</div>
+                    <h2 style={{ fontSize: '28px', marginBottom: '10px' }}>Start Your Nursing Career Today</h2>
+                    <p style={{ color: 'var(--text-gray)', fontSize: '15px', marginBottom: '20px' }}>Book a free consultation with our team. We'll assess your eligibility and guide you through the best pathway — Nursing Ausbildung or Direct Recruitment.</p>
+                  </div>
+                  <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                      <input type="text" placeholder="Full Name *" value={contactForm.fullName} onChange={(e) => setContactForm({...contactForm, fullName: e.target.value})} style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                      <input type="tel" placeholder="Phone *" value={contactForm.phone} onChange={(e) => setContactForm({...contactForm, phone: e.target.value})} style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                    </div>
+                    <input type="email" placeholder="Email Address" value={contactForm.email} onChange={(e) => setContactForm({...contactForm, email: e.target.value})} style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                    <textarea placeholder="Message (optional)" value={contactForm.message} onChange={(e) => setContactForm({...contactForm, message: e.target.value})} rows={2} style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '4px' }}></textarea>
+                    {contactStatus.error && <p style={{ color: '#ef4444', fontSize: '12px' }}>{contactStatus.error}</p>}
+                    <button type="submit" disabled={contactStatus.loading} className="btn-primary" style={{ alignSelf: 'flex-start', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {contactStatus.loading ? <Loader2 className="animate-spin" size={18} /> : 'BOOK FREE CONSULTATION ↗'}
+                    </button>
+                  </form>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '10px' }}>
               <div style={{ display: 'flex', gap: '15px' }}>
-                <div style={{ background: 'var(--brand-secondary)', color: 'white', padding: '10px', borderRadius: '50%', height: '40px', width: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Phone size={20} /></div>
-                <div>
-                  <h4 style={{ fontSize: '14px' }}>Call Us</h4>
-                  <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>+91 9847 300 744</p>
-                </div>
+                <div style={{ background: 'var(--brand-secondary)', color: 'white', padding: '10px', borderRadius: '50%', height: '40px', width: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Phone size={20} /></div>
+                <div><h4 style={{ fontSize: '14px' }}>Call Us</h4><p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>+91 9847 300 744</p></div>
               </div>
               <div style={{ display: 'flex', gap: '15px' }}>
-                <div style={{ background: 'var(--brand-secondary)', color: 'white', padding: '10px', borderRadius: '50%', height: '40px', width: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Mail size={20} /></div>
-                <div>
-                  <h4 style={{ fontSize: '14px' }}>Email Us</h4>
-                  <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>info@nexstepeurope.de</p>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '15px', gridColumn: 'span 2' }}>
-                <div style={{ background: 'var(--brand-secondary)', color: 'white', padding: '10px', borderRadius: '50%', height: '40px', width: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><MapPin size={20} /></div>
-                <div>
-                  <h4 style={{ fontSize: '14px' }}>Visit Us</h4>
-                  <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>Kerala, India</p>
-                </div>
+                <div style={{ background: 'var(--brand-secondary)', color: 'white', padding: '10px', borderRadius: '50%', height: '40px', width: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Mail size={20} /></div>
+                <div><h4 style={{ fontSize: '14px' }}>Email Us</h4><p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>info@nexstepeurope.de</p></div>
               </div>
             </div>
-            <Link href="/contact" className="btn-primary" style={{ alignSelf: 'flex-start', marginTop: '10px' }}>
-              BOOK FREE CONSULTATION ↗
-            </Link>
           </div>
         </div>
       </section>
@@ -280,8 +334,8 @@ export default function Home() {
           <h2 className="hero-title" style={{ fontSize: '36px', textAlign: 'center', marginBottom: '40px' }}>Latest News & Articles<br />From Our Blog</h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
-            {blogs.map((b, i) => (
-              <div key={i} style={{ background: 'white', borderRadius: '4px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
+            {blogs.map((b) => (
+              <div key={b.id} style={{ background: 'white', borderRadius: '4px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
                 <div style={{ position: 'relative' }}>
                   <img src={b.img} alt={b.title} style={{ width: '100%', height: '220px', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', bottom: '15px', left: '15px', background: 'var(--brand-primary)', color: 'white', padding: '5px 10px', fontSize: '12px', fontWeight: 'bold', borderRadius: '2px' }}>

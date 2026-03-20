@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == "admin@nexstepeurope.de" || 
+        request.auth.token.email == "amalchand@gmail.com"
+      );
+    }
+
+    // Inquiries: Anyone can submit (create), only admins can see/modify
+    match /inquiries/{inquiryId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Blogs: Anyone can read, only admins can manage
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
