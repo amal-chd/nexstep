@@ -83,7 +83,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h4 style={{ marginBottom: '5px' }}>Email Us</h4>
-                  <a href="mailto:info@nexstepeurope.com" style={{ color: 'var(--brand-primary)', fontWeight: '700' }}>info@nexstepeurope.com</a>
+                  <a href="mailto:info@nexstepeurope.de" style={{ color: 'var(--brand-primary)', fontWeight: '700' }}>info@nexstepeurope.de</a>
                 </div>
               </div>
 

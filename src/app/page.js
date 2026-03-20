@@ -255,7 +255,7 @@ export default function Home() {
                 <div style={{ background: 'var(--brand-secondary)', color: 'white', padding: '10px', borderRadius: '50%', height: '40px', width: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Mail size={20} /></div>
                 <div>
                   <h4 style={{ fontSize: '14px' }}>Email Us</h4>
-                  <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>info@nexstepeurope.com</p>
+                  <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>info@nexstepeurope.de</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '15px', gridColumn: 'span 2' }}>

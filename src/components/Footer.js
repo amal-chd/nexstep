@@ -99,7 +99,7 @@ export default function Footer() {
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <Mail size={18} color="var(--brand-secondary)" style={{ flexShrink: 0 }} />
-                <a href="mailto:info@nexstepeurope.com" style={{ fontSize: '14px' }}>info@nexstepeurope.com</a>
+                <a href="mailto:info@nexstepeurope.de" style={{ fontSize: '14px' }}>info@nexstepeurope.de</a>
               </div>
             </div>
           </div>
